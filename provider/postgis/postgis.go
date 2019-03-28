@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 
@@ -432,7 +433,7 @@ func (p Provider) inspectLayerGeomType(l *Layer) error {
 	// address this by replacing the !ZOOM! token with an ANY statement which includes all zooms
 	sql = strings.Replace(sql, "!ZOOM!", "ANY('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}')", 1)
 
-	sql = strings.Replace(sql, "!HASH!", "hash IS NOT NULL", -1)
+	sql = strings.Replace(sql, "!HASH!", "import_id IS NOT NULL", -1)
 
 	// we need a tile to run our sql through the replacer
 	tile := provider.NewTile(0, 0, 0, 64, proj.WebMercatorSRID)
@@ -518,7 +519,7 @@ func (p Provider) TileFeatures(ctx context.Context, layer string, tile provider.
 	}
 	params := httptreemux.ContextParams(ctx)
 	hash := params["hash"]
-	plyr.sql = strings.Replace(plyr.sql, "!HASH!", `hash='`+hash+`'`, -1)
+	plyr.sql = strings.Replace(plyr.sql, "!HASH!", `import_id='`+hash+`'`, -1)
 
 	sql, err := replaceTokens(plyr.sql, plyr.srid, tile)
 	if err != nil {
