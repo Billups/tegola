@@ -33,7 +33,7 @@ func ParseKey(str string) (*Key, error) {
 	// remove the basepath and the first slash, then split the parts
 	keyParts := strings.Split(strings.TrimLeft(str, "/"), "/")
 	// we're expecting a z/x/y scheme
-	if len(keyParts) < 3 || len(keyParts) > 5 {
+	if len(keyParts) < 3 || len(keyParts) > 6 {
 		err = ErrInvalidFileKeyParts{
 			path:          str,
 			keyPartsCount: len(keyParts),
@@ -46,6 +46,11 @@ func ParseKey(str string) (*Key, error) {
 	var zxy []string
 
 	switch len(keyParts) {
+	case 6: // map, layer, hash, z, x, y
+		key.MapName = keyParts[0]
+		key.LayerName = keyParts[1]
+		key.Hash = keyParts[2]
+		zxy = keyParts[3:]
 	case 5: // map, layer, z, x, y
 		key.MapName = keyParts[0]
 		key.LayerName = keyParts[1]
@@ -109,6 +114,7 @@ func ParseKey(str string) (*Key, error) {
 type Key struct {
 	MapName   string
 	LayerName string
+	Hash      string
 	Z         uint
 	X         uint
 	Y         uint
@@ -118,6 +124,7 @@ func (k Key) String() string {
 	return filepath.Join(
 		k.MapName,
 		k.LayerName,
+		k.Hash,
 		strconv.FormatUint(uint64(k.Z), 10),
 		strconv.FormatUint(uint64(k.X), 10),
 		strconv.FormatUint(uint64(k.Y), 10))
