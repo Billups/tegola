@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/dimfeld/httptreemux"
+
 	"github.com/jackc/pgx"
 
 	"github.com/go-spatial/geom"
@@ -430,6 +432,8 @@ func (p Provider) inspectLayerGeomType(l *Layer) error {
 	// address this by replacing the !ZOOM! token with an ANY statement which includes all zooms
 	sql = strings.Replace(sql, "!ZOOM!", "ANY('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}')", 1)
 
+	sql = strings.Replace(sql, "!HASH!", "import_id IS NOT NULL", -1)
+
 	// we need a tile to run our sql through the replacer
 	tile := provider.NewTile(0, 0, 0, 64, proj.WebMercatorSRID)
 
@@ -512,14 +516,16 @@ func (p Provider) TileFeatures(ctx context.Context, layer string, tile provider.
 	if !ok {
 		return ErrLayerNotFound{layer}
 	}
+	params := httptreemux.ContextParams(ctx)
+	hash := params["hash"]
+	plyr.sql = strings.Replace(plyr.sql, "!HASH!", `import_id='`+hash+`'`, -1)
 
 	sql, err := replaceTokens(plyr.sql, plyr.srid, tile)
 	if err != nil {
 		return fmt.Errorf("error replacing layer tokens for layer (%v) SQL (%v): %v", layer, sql, err)
 	}
-
-	if debugExecuteSQL {
-		log.Printf("%s:%s for layer (%v): %v", EnvSQLDebugName, EnvSQLDebugExecute, layer, sql)
+	if strings.Contains(os.Getenv("TEGOLA_SQL_DEBUG"), "EXECUTE_SQL") {
+		log.Printf("TEGOLA_SQL_DEBUG:EXECUTE_SQL for layer (%v): %v", layer, sql)
 	}
 
 	// context check
