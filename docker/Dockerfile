@@ -45,6 +45,7 @@ RUN ln -s /opt/tegola_src /opt/tegola_src/src/github.com/go-spatial/tegola
 # Build binary
 WORKDIR /opt/tegola_src/cmd/tegola
 ENV GOPATH=/opt/tegola_src
+RUN go get -d ./...
 RUN go build -v -gcflags "-N -l" -o /opt/tegola
 RUN chmod a+x /opt/tegola
 
