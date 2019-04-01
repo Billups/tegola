@@ -34,6 +34,7 @@ FROM golang:1.9.2-alpine3.7 AS build
 RUN apk update
 RUN apk add musl-dev=1.1.18-r3
 RUN apk add gcc=6.4.0-r5
+RUN apk add git
 
 # Set up source for compilation
 RUN mkdir -p /opt/tegola_src
@@ -61,7 +62,7 @@ ARG CONFD_VERSION=0.16.0
 RUN wget https://github.com/kelseyhightower/confd/releases/download/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64 -O /usr/local/bin/confd \
   && chmod +x /usr/local/bin/confd
 COPY etc/ /etc/
-COPY --chown=go etc/entrypoint.sh /usr/local/bin/
+COPY etc/entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 COPY --from=build /opt/tegola /opt/
