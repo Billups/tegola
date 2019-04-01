@@ -1,0 +1,31 @@
+# Snapshot Server ConfD template
+# 
+server:
+    listen: {{getv "/snapshot/server/listen"}}
+db:
+    username: {{getv "/snapshot/db/username"}}
+    password: {{getv "/snapshot/db/password"}}
+    database: snapshot
+    host: {{getv "/snapshot/db/host"}}
+    port: 3306
+    options: parseTime=true
+    # For migrations, we need multiStatements. For general running of the application, that's a bad idea since it
+    # makes SQL injection more of a possibility from the driver.
+    #options: "parseTime=true&multiStatements=true"
+    maxConnLifetime: 10 # seconds
+
+harebraneUrl: {{getv "/snapshot/harebraneUrl"}}
+
+demosUrl: {{getv "/snapshot/demosUrl"}}
+
+keycloak:
+{{- range gets "/snapshot/keycloak/*"}}
+  {{ .Key | base }}: {{.Value}}
+{{- end}}
+
+aws:
+  s3:
+    vendorProductPhotos:
+    {{- range gets "/snapshot/s3/vendorProductPhotos/*"}}
+      {{ .Key | base }}: {{.Value}}
+    {{- end}}

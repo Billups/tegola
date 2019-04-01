@@ -1,0 +1,6 @@
+[template]
+src = "tegola.toml.tmpl"
+dest = "/opt/config.toml"
+keys = [
+    "/tegola",
+]
