@@ -32,7 +32,7 @@ FROM golang:1.9.2-alpine3.7 AS build
 #  incurs approximately 1:30 extra build time (1:54 vs 0:27) to install packages.  Doesn't impact
 #  development as these layers are drawn from cache after the first build.
 RUN apk update
-RUN apk add musl-dev=1.1.18-r2
+RUN apk add musl-dev=1.1.18-r3
 RUN apk add gcc=6.4.0-r5
 
 # Set up source for compilation
