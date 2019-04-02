@@ -19,10 +19,20 @@ max_connections = 100        # The max connections to maintain in the connection
 
   [[providers.layers]]
   name = "{{getv "/tegola/providers/layers/name"}}"   # will be encoded as the layer name in the tile
-  tablename = "{{getv "/tegola/providers/layers/tablename"}}"  # sql or table_name are required
+  # tablename = "{{getv "/tegola/providers/layers/tablename"}}"  # sql or table_name are required
   geometry_type = "linestring"        # geometry type. if not set, tables are inspected at startup to try and infer the gemetry type
   srid = 4326                         # the srid of table's geo data. Defaults to WebMercator (3857)
-  fields = ["hash", "{{getv "/tegola/providers/layers/field2"}}", "bin_num"]
+  # fields = ["hash", "{{getv "/tegola/providers/layers/field2"}}", "bin_num"]
+  sql = '''
+      SELECT
+        MAX(gid) as gid,
+        ST_AsBinary(ST_Collect(geom)) AS geom,
+        trip_count,
+        bin_num
+      FROM hashed_trips ht
+      WHERE !HASH! AND geom && !BBOX!
+      GROUP BY hash, {{getv "/tegola/providers/layers/field2"}}, bin_num
+  '''
 
 # maps are made up of layers
 [[maps]]
