@@ -1,0 +1,14 @@
+version: 0.2
+# Internal version 2-8-19.1
+    
+phases:
+  pre_build:
+    commands:                
+      - TAG="$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+      - $(aws ecr get-login --no-include-email --region $REGION)  
+  build:
+    commands:
+      - docker build -f docker/Dockerfile -t "${ECR_REPO_URL}:${TAG}" -t "${ECR_REPO_URL}:latest" -t "${ECR_REPO_URL}:${BRANCH}" .
+  post_build:
+    commands:
+      - docker push "${ECR_REPO_URL}"

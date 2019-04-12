@@ -32,8 +32,9 @@ FROM golang:1.9.2-alpine3.7 AS build
 #  incurs approximately 1:30 extra build time (1:54 vs 0:27) to install packages.  Doesn't impact
 #  development as these layers are drawn from cache after the first build.
 RUN apk update
-RUN apk add musl-dev=1.1.18-r2
+RUN apk add musl-dev=1.1.18-r3
 RUN apk add gcc=6.4.0-r5
+RUN apk add git
 
 # Set up source for compilation
 RUN mkdir -p /opt/tegola_src
@@ -45,12 +46,27 @@ RUN ln -s /opt/tegola_src /opt/tegola_src/src/github.com/go-spatial/tegola
 # Build binary
 WORKDIR /opt/tegola_src/cmd/tegola
 ENV GOPATH=/opt/tegola_src
+RUN go get -d ./...
 RUN go build -v -gcflags "-N -l" -o /opt/tegola
 RUN chmod a+x /opt/tegola
 
 # --- Create minimal deployment image, just alpine & the binary
 FROM alpine:3.7
+RUN apk --no-cache add ca-certificates wget && update-ca-certificates
+
 LABEL maintainer="Development@JivanAmara.net"
 LABEL io.gospatial.version="0.6.0_beta"
+
+# Install ConfD to handle config file generation
+ARG CONFD_VERSION=0.16.0
+RUN wget https://github.com/kelseyhightower/confd/releases/download/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64 -O /usr/local/bin/confd \
+  && chmod +x /usr/local/bin/confd
+COPY etc/ /etc/
+COPY etc/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 COPY --from=build /opt/tegola /opt/
-CMD ["/opt/tegola", "--config", "/opt/tegola_config/config.toml", "serve"]
+
+# CMD ["/opt/tegola", "--config", "/opt/tegola_config/config.toml", "serve"]
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
