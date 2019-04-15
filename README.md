@@ -177,6 +177,7 @@ The following tokens are supported in custom SQL queries for the PostGIS data pr
 
 - `!BBOX!` - [required] Will convert the z/x/y values into a bounding box to query the feature table with.
 - `!ZOOM!` - [optional] Pass in the zoom value for the request. Useful for filtering feature results by zoom.
+- `!HASH!` - [optional] Pass in a check for the hash value. Useful for filtering tiles by hash.
 
 ## Environment Variables
 
