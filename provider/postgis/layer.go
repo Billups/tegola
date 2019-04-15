@@ -17,7 +17,7 @@ type Layer struct {
 	// The SRID that the data in the table is stored in. This will default to WebMercator
 	srid uint64
 	// The custom hash name for filtering out tiles
-	hashName string
+	hashField string
 }
 
 func (l Layer) Name() string {
@@ -40,6 +40,6 @@ func (l Layer) IDFieldName() string {
 	return l.idField
 }
 
-func (l Layer) HashName() string {
-	return l.hashName
+func (l Layer) HashFieldName() string {
+	return l.hashField
 }
