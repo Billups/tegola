@@ -187,6 +187,13 @@ name = "zoning"                              # used in the URL to reference this
 
 \* more on PostgreSQL SSL mode [here](https://www.postgresql.org/docs/9.2/static/libpq-ssl.html). The `postgis` config also supports "ssl_cert" and "ssl_key" options are required, corresponding semantically with "PGSSLKEY" and "PGSSLCERT". These options do not check for environment variables automatically. See the section [below](#environment-variables) on injecting environment variables into the config.
 
+### Supported PostGIS SQL tokens
+The following tokens are supported in custom SQL queries for the PostGIS data provider:
+
+- `!BBOX!` - [required] Will convert the z/x/y values into a bounding box to query the feature table with.
+- `!ZOOM!` - [optional] Pass in the zoom value for the request. Useful for filtering feature results by zoom.
+- `!HASH!` - [optional] Pass in a check for the hash value. Useful for filtering tiles by hash.
+
 ## Environment Variables
 
 #### Config TOML

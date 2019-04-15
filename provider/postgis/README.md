@@ -43,6 +43,7 @@ tablename = "gis.zoning_base_3857"
 - `id_fieldname` (string): [Optional] the name of the feature id field. defaults to `gid`.
 - `fields` ([]string): [Optional] a list of fields to include alongside the feature. Can be used if `sql` is not defined.
 - `srid` (int): [Optional] the SRID of the layer. Supports `3857` (WebMercator) or `4326` (WGS84).
+- `hash_name` (string) [optional] a custom filtering hash, only retrieves tiles that match a given string under this field name when queried like (/maps/:map_name/:layer_name/:hash)
 - `geometry_type` (string): [Optional] the layer geometry type. If not set, the table will be inspected at startup to try and infer the gemetry type. Valid values are: `Point`, `LineString`, `Polygon`, `MultiPoint`, `MultiLineString`, `MultiPolygon`, `GeometryCollection`.
 - `sql` (string): [*Required] custom SQL to use use. Required if `tablename` is not defined. Supports the following tokens:
   - `!BBOX!` - [Required] will be replaced with the bounding box of the tile before the query is sent to the database. `!bbox!` and`!BOX!` are supported as well for compatibilitiy with queries from Mapnik and MapServer styles.
@@ -50,6 +51,7 @@ tablename = "gis.zoning_base_3857"
   - `!SCALE_DENOMINATOR!` - [Optional] scale denominator, assuming 90.7 DPI (i.e. 0.28mm pixel size)
   - `!PIXEL_WIDTH!` - [Optional] the pixel width in meters, assuming 256x256 tiles
   - `!PIXEL_HEIGHT!` - [Optional] the pixel height in meters, assuming 256x256 tiles
+  - `!HASH!` - [optional] Will be replaces with a check for the hash value. 
 
 `*Required`: either the `tablename` or `sql` must be defined, but not both.
 

@@ -71,6 +71,7 @@ const (
 	ConfigKeyGeomField   = "geometry_fieldname"
 	ConfigKeyGeomIDField = "id_fieldname"
 	ConfigKeyGeomType    = "geometry_type"
+	ConfigKeyHashName    = "hash_name"
 )
 
 func init() {
@@ -101,6 +102,7 @@ var isSelectQuery = regexp.MustCompile(`(?i)^((\s*)(--.*\n)?)*select`)
 // 		id_fieldname (string): [Optional] the name of the feature id field. defaults to gid
 // 		fields ([]string): [Optional] a list of fields to include alongside the feature. Can be used if sql is not defined.
 // 		srid (int): [Optional] the SRID of the layer. Supports 3857 (WebMercator) or 4326 (WGS84).
+//		hash_name (string): [Optional] a custom name that can be used in the tile URL
 // 		sql (string): [*Required] custom SQL to use use. Required if tablename is not defined. Supports the following tokens:
 //
 // 			!BBOX! - [Required] will be replaced with the bounding box of the tile before the query is sent to the database.
@@ -223,6 +225,12 @@ func NewTileProvider(config dict.Dicter) (provider.Tiler, error) {
 			return nil, fmt.Errorf("for layer (%v) %v %v field had the following error: %v", i, lname, ConfigKeyFields, err)
 		}
 
+		hashfld := ""
+		hashfld, err = layer.String(ConfigKeyHashName, &hashfld)
+		if err != nil {
+			return nil, fmt.Errorf("for layer (%v) %v : %v", i, lname, err)
+		}
+
 		geomfld := "geom"
 		geomfld, err = layer.String(ConfigKeyGeomField, &geomfld)
 		if err != nil {
@@ -270,6 +278,7 @@ func NewTileProvider(config dict.Dicter) (provider.Tiler, error) {
 			idField:   idfld,
 			geomField: geomfld,
 			srid:      uint64(lsrid),
+			hashName:  hashfld,
 		}
 
 		if sql != "" && !isSelectQuery.MatchString(sql) {
@@ -433,7 +442,8 @@ func (p Provider) inspectLayerGeomType(l *Layer) error {
 	// address this by replacing the !ZOOM! token with an ANY statement which includes all zooms
 	sql = strings.Replace(sql, "!ZOOM!", "ANY('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}')", 1)
 
-	sql = strings.Replace(sql, "!HASH!", "hash IS NOT NULL", -1)
+	hashString := fmt.Sprintf("%s IS NOT NULL", l.HashName())
+	sql = strings.Replace(sql, "!HASH!", hashString, -1)
 
 	// we need a tile to run our sql through the replacer
 	tile := provider.NewTile(0, 0, 0, 64, proj.WebMercatorSRID)
@@ -519,7 +529,7 @@ func (p Provider) TileFeatures(ctx context.Context, layer string, tile provider.
 	}
 	params := httptreemux.ContextParams(ctx)
 	hash := params["hash"]
-	plyr.sql = strings.Replace(plyr.sql, "!HASH!", `hash='`+hash+`'`, -1)
+	plyr.sql = strings.Replace(plyr.sql, "!HASH!", plyr.HashName()+`='`+hash+`'`, -1)
 
 	sql, err := replaceTokens(plyr.sql, plyr.srid, tile)
 	if err != nil {
