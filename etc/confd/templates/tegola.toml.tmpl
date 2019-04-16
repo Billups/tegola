@@ -33,6 +33,7 @@ max_connections = 100        # The max connections to maintain in the connection
       WHERE !HASH! AND geom && !BBOX!
       GROUP BY hash, {{getv "/tegola/providers/layers/field2"}}, bin_num
   '''
+  hash_fieldname = "hash"
 
 # maps are made up of layers
 [[maps]]
