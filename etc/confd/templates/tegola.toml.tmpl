@@ -2,8 +2,8 @@
 port = ":9050"              # port to bind the web server to. defaults ":8080"
 
 [cache]                     # configure a tile cache
-type = "file"               # a file cache will cache to the local file system
-basepath = "/tmp/tegola"    # where to write the file cache
+type = "redis"
+address = "{{getv "/tegola/redis/host"}}"
 
 # register data providers
 [[providers]]
