@@ -26,11 +26,11 @@ max_connections = 100        # The max connections to maintain in the connection
   sql = '''
       SELECT
         MAX(gid) as gid,
-        ST_AsBinary(ST_Collect(geom)) AS geom,
+        ST_AsBinary(ST_Collect(seg.geom)) AS geom,
         trip_count,
         bin_num
-      FROM hashed_trips ht
-      WHERE !HASH! AND geom && !BBOX!
+      FROM hashed_trips ht, geos_trips_segs as seg
+      WHERE !HASH! AND ht.gid = seg.id AND geom && !BBOX!
       GROUP BY hash, {{getv "/tegola/providers/layers/field2"}}, bin_num
   '''
   hash_fieldname = "hash"
