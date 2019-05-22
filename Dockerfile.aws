@@ -59,7 +59,7 @@ LABEL io.gospatial.version="0.6.0_beta"
 
 # Install ConfD to handle config file generation
 ARG CONFD_VERSION=0.16.0
-ADD https://github.com/kelseyhightower/confd/releases/download/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64 -O /usr/local/bin/confd \
+RUN wget ADD https://github.com/kelseyhightower/confd/releases/download/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64 -O /usr/local/bin/confd \
   && chmod +x /usr/local/bin/confd
 COPY etc/ /etc/
 COPY etc/entrypoint.sh /usr/local/bin/
