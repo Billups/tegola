@@ -35,6 +35,49 @@ max_connections = 100        # The max connections to maintain in the connection
   '''
   hash_fieldname = "hash"
 
+  [[providers.layers]]
+  name = "byod_trips"                    # will be encoded as the layer name in the tile
+  geometry_type = "linestring"
+  geometry_fieldname = "geom"      # geom field. default is geom
+  srid = 4326                      # the srid of table's geo data. Defaults to WebMercator (3857)
+  sql = '''
+      SELECT
+          MAX(gid)as gid,
+          ST_AsBinary(ST_Collect(geom)) AS geom,
+          ((audience_count - mm.min) * 100) / (mm.max - mm.min) as perc
+      FROM custom_trips cto, (
+          SELECT
+              MIN(audience_count) as min,
+              MAX(audience_count) as max
+          FROM custom_trips cti
+          WHERE !HASH!
+          LIMIT 1) mm
+      WHERE !HASH! AND geom && !BBOX!
+      GROUP BY import_id, mm.min, mm.max, audience_count
+  '''
+  hash_fieldname = "import_id"
+
+  [[providers.layers]]
+  name = "byod_lives"                    # will be encoded as the layer name in the tile
+  geometry_type = "multipolygon"
+  geometry_fieldname = "geom"      # geom field. default is geom
+  srid = 4326                      # the srid of table's geo data. Defaults to WebMercator (3857)
+  sql = '''
+      SELECT
+          gid,
+          ST_AsBinary(geom) AS geom,
+          ((audience_count - mm.min) * 100) / (mm.max - mm.min) as perc
+      FROM custom_lives cto, (
+          SELECT
+              MIN(audience_count) as min,
+              MAX(audience_count) as max
+          FROM custom_lives cti
+          WHERE !HASH!
+          LIMIT 1) mm
+      WHERE !HASH! AND geom && !BBOX!
+  '''
+  hash_fieldname = "import_id"
+
 # maps are made up of layers
 [[maps]]
 name = "{{getv "/tegola/maps/name"}}"     # used in the URL to reference this map (/maps/:map_name)
@@ -43,3 +86,13 @@ name = "{{getv "/tegola/maps/name"}}"     # used in the URL to reference this ma
   provider_layer = "{{getv "/tegola/maps/layers/provider_layer"}}"  # must match a data provider layer
   min_zoom = 5                            # minimum zoom level to include this layer
   max_zoom = 20                            # maximum zoom level to include this layer
+  [[maps.layers]]
+  name = "byod_trips"
+  provider_layer = "{{getv "/tegola/provider/name"}}.byod_trips"
+  min_zoom = 5                     # minimum zoom level to include this layer
+  max_zoom = 22                    # maximum zoom level to include this layer
+  [[maps.layers]]
+  name = "byod_lives"
+  provider_layer = "{{getv "/tegola/provider/name"}}.byod_lives"
+  min_zoom = 5                     # minimum zoom level to include this layer
+  max_zoom = 22 # maximum zoom level to include this layer
