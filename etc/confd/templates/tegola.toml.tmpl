@@ -61,6 +61,7 @@ max_connections = 100        # The max connections to maintain in the connection
   name = "byod_lives"                    # will be encoded as the layer name in the tile
   geometry_type = "multipolygon"
   geometry_fieldname = "geom"      # geom field. default is geom
+  dont_simplify = true
   srid = 4326                      # the srid of table's geo data. Defaults to WebMercator (3857)
   sql = '''
       SELECT
