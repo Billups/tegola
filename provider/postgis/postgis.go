@@ -195,7 +195,8 @@ func NewTileProvider(config dict.Dicter) (provider.Tiler, error) {
 		return nil, err
 	}
 
-	_, err = p.pool.Exec("set statement_timeout = $1", timeout)
+	timeoutStr := fmt.Sprtinf("set statement_timeout = %d", timeout)
+	_, err = p.pool.Exec(timeoutStr)
 	if err != nil {
 		return nil, fmt.Errorf("error adding timeout: %v", err)
 	}
