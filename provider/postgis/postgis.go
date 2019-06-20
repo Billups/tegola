@@ -204,10 +204,14 @@ func NewTileProvider(config dict.Dicter) (provider.Tiler, error) {
 	}
 
 	timeout := 0
-	if timeout, err = config.int(configkeytimeout, &timeout); err != nil {
+	if timeout, err = config.Int(ConfigKeyTimeout, &timeout); err != nil {
 		return nil, err
 	}
-	p.timeout = timeout
+
+	_, err = p.pool.Exec("set statement_timeout = $1", timeout)
+	if err != nil {
+		return nil, fmt.Errorf("error adding timeout: %v", err)
+	}
 
 	layers, err := config.MapSlice(ConfigKeyLayers)
 	if err != nil {
