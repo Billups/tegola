@@ -564,7 +564,6 @@ func (p Provider) TileFeatures(ctx context.Context, layer string, tile provider.
 		return fmt.Errorf("error adding timeout: %v", err)
 	}
 
-	sql = "SELECT pg_sleep(10)"
 	rows, err := p.pool.Query(sql)
 	if err != nil {
 		return fmt.Errorf("error running layer (%v) SQL (%v): %v", layer, sql, err)
