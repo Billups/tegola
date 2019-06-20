@@ -165,15 +165,12 @@ func NewTileProvider(config dict.Dicter) (provider.Tiler, error) {
 		return nil, err
 	}
 
-	timeout := 0
-	if timeout, err = config.Int(ConfigKeyTimeout, &timeout); err != nil {
-		return nil, err
-	}
-
-	connString := fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s connect_timeout=%d", user, password, host, uint16(port), db, timeout)
-	connConfig, err := pgx.ParseDSN(connString)
-	if err != nil {
-		return nil, err
+	connConfig := pgx.ConnConfig{
+		Host:     host,
+		Port:     uint16(port),
+		Database: db,
+		User:     user,
+		Password: password,
 	}
 
 	err = ConfigTLS(sslmode, sslkey, sslcert, sslrootcert, &connConfig)
@@ -191,6 +188,16 @@ func NewTileProvider(config dict.Dicter) (provider.Tiler, error) {
 
 	if p.pool, err = pgx.NewConnPool(p.config); err != nil {
 		return nil, fmt.Errorf("Failed while creating connection pool: %v", err)
+	}
+
+	timeout := 0
+	if timeout, err = config.Int(ConfigKeyTimeout, &timeout); err != nil {
+		return nil, err
+	}
+
+	_, err = p.pool.Exec("set statement_timeout = $1", timeout)
+	if err != nil {
+		return nil, fmt.Errorf("error adding timeout: %v", err)
 	}
 
 	layers, err := config.MapSlice(ConfigKeyLayers)
