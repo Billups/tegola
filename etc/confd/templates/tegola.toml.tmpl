@@ -14,6 +14,7 @@ port = 5432                 # postgis database port (required)
 database = "{{getv "/tegola/db/name"}}"        # postgis database name (required)
 user = "{{getv "/tegola/db/user"}}"             # postgis database user (required)
 password = "{{getv "/tegola/db/password"}}"               # postgis database password (required)
+timoeout = {{getv "/tegola/db/timeout" "600000"}}
 srid = 4326                 # The default srid for this provider. Defaults to WebMercator (3857) (optional)
 max_connections = 100        # The max connections to maintain in the connection pool. Default is 100. (optional)
 

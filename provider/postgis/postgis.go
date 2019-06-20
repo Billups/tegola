@@ -57,6 +57,7 @@ const (
 	ConfigKeyDB          = "database"
 	ConfigKeyUser        = "user"
 	ConfigKeyPassword    = "password"
+	ConfigKeyTimeout     = "timeout"
 	ConfigKeySSLMode     = "ssl_mode"
 	ConfigKeySSLKey      = "ssl_key"
 	ConfigKeySSLCert     = "ssl_cert"
@@ -179,6 +180,12 @@ func NewTileProvider(config dict.Dicter) (provider.Tiler, error) {
 		},
 	}
 
+	connString := fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s connect_timeout=%d", user, password, host, uint16(port), db, timeout)
+	connConfig, err := pgx.ParseDSN(connString)
+	if err != nil {
+		return nil, err
+	}
+
 	err = ConfigTLS(sslmode, sslkey, sslcert, sslrootcert, &connConfig)
 	if err != nil {
 		return nil, err
@@ -195,6 +202,12 @@ func NewTileProvider(config dict.Dicter) (provider.Tiler, error) {
 	if p.pool, err = pgx.NewConnPool(p.config); err != nil {
 		return nil, fmt.Errorf("Failed while creating connection pool: %v", err)
 	}
+
+	timeout := 0
+	if timeout, err = config.int(configkeytimeout, &timeout); err != nil {
+		return nil, err
+	}
+	p.timeout = timeout
 
 	layers, err := config.MapSlice(ConfigKeyLayers)
 	if err != nil {
