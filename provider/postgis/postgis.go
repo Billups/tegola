@@ -32,6 +32,7 @@ type Provider struct {
 	layers     map[string]Layer
 	srid       uint64
 	firstlayer string
+	timeout    int
 }
 
 const (
@@ -207,12 +208,7 @@ func NewTileProvider(config dict.Dicter) (provider.Tiler, error) {
 	if timeout, err = config.Int(ConfigKeyTimeout, &timeout); err != nil {
 		return nil, err
 	}
-
-	timeoutStr := fmt.Sprintf("set statement_timeout = %d", timeout)
-	_, err = p.pool.Exec(timeoutStr)
-	if err != nil {
-		return nil, fmt.Errorf("error adding timeout: %v", err)
-	}
+	p.timeout = timeout
 
 	layers, err := config.MapSlice(ConfigKeyLayers)
 	if err != nil {
@@ -560,6 +556,12 @@ func (p Provider) TileFeatures(ctx context.Context, layer string, tile provider.
 	// context check
 	if err := ctx.Err(); err != nil {
 		return err
+	}
+
+	timeoutStr := fmt.Sprintf("set statement_timeout = %d", p.timeout)
+	_, err = p.pool.Exec(timeoutStr)
+	if err != nil {
+		return fmt.Errorf("error adding timeout: %v", err)
 	}
 
 	sql = "SELECT pg_sleep(10)"
