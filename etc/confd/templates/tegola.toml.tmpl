@@ -50,12 +50,12 @@ max_connections = 100        # The max connections to maintain in the connection
             )
     )
     SELECT
-        MAX(gid)as gid,
+        MAX(gid) as gid,
         ST_AsBinary(ST_Collect(geom)) AS geom,
         ((audience_count - min_aud) * 100) / (max_aud - min_aud) as perc
     FROM custom_trips cto, min_max_aud
     WHERE !HASH! AND geom && !BBOX!
-    GROUP BY cto.import_id, audience_count
+    GROUP BY import_id, min_aud, max_aud, audience_count
   '''
   hash_fieldname = "import_id"
 
