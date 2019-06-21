@@ -41,19 +41,20 @@ max_connections = 100        # The max connections to maintain in the connection
   geometry_fieldname = "geom"      # geom field. default is geom
   srid = 4326                      # the srid of table's geo data. Defaults to WebMercator (3857)
   sql = '''
-      SELECT
-          MAX(gid)as gid,
-          ST_AsBinary(ST_Collect(geom)) AS geom,
-          ((audience_count - mm.min) * 100) / (mm.max - mm.min) as perc
-      FROM custom_trips cto, (
-          SELECT
-              MIN(audience_count) as min,
-              MAX(audience_count) as max
-          FROM custom_trips cti
-          WHERE !HASH!
-          LIMIT 1) mm
-      WHERE !HASH! AND geom && !BBOX!
-      GROUP BY import_id, mm.min, mm.max, audience_count
+    -- using a CTE to prevent an infinite loop with group by and st_collect
+    WITH min_max_aud (min_aud, max_aud) as (
+        values (
+                (SELECT MIN(audience_count) FROM custom_trips cti WHERE cti.import_id = !HASH!),
+                (SELECT MAX(audience_count) FROM custom_trips cti WHERE cti.import_id = !HASH!)
+            )
+    )
+    SELECT
+        MAX(gid)as gid,
+        ST_AsBinary(ST_Collect(geom)) AS geom,
+        ((audience_count - min_aud) * 100) / (max_aud - min_aud) as perc
+    FROM custom_trips cto, min_max_aud
+    WHERE cto.import_id = !HASH! AND geom && ST_MakeEnvelope(-90.08926390347511,35.02887183541594,-89.99862669645647,35.1030575762299,4326)
+    GROUP BY cto.import_id, audience_count
   '''
   hash_fieldname = "import_id"
 
