@@ -45,8 +45,8 @@ max_connections = 100        # The max connections to maintain in the connection
     -- using a CTE to prevent an infinite loop with group by and st_collect
     WITH min_max_aud (min_aud, max_aud) as (
         values (
-                (SELECT MIN(audience_count) FROM custom_trips cti WHERE cti.import_id = !HASH!),
-                (SELECT MAX(audience_count) FROM custom_trips cti WHERE cti.import_id = !HASH!)
+                (SELECT MIN(audience_count) FROM custom_trips cti WHERE !HASH!),
+                (SELECT MAX(audience_count) FROM custom_trips cti WHERE !HASH!)
             )
     )
     SELECT
@@ -54,7 +54,7 @@ max_connections = 100        # The max connections to maintain in the connection
         ST_AsBinary(ST_Collect(geom)) AS geom,
         ((audience_count - min_aud) * 100) / (max_aud - min_aud) as perc
     FROM custom_trips cto, min_max_aud
-    WHERE cto.import_id = !HASH! AND geom && !BBOX!
+    WHERE !HASH! AND geom && !BBOX!
     GROUP BY cto.import_id, audience_count
   '''
   hash_fieldname = "import_id"
